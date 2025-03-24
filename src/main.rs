@@ -1,14 +1,14 @@
 use macroquad::prelude::*;
 
-mod tortue;  // Tell Rust to use tortue.rs
+mod tortue;
 use tortue::Tortue;
 
 #[macroquad::main("Tortue")]
 async fn main() {
     let mut tortue = Tortue::new();
     loop {
-        clear_background(WHITE);
-        draw_circle(tortue.x, tortue.y, 5.0, RED);  // Show tortue as a red dot
+        tortue.start(); // Draw the tortue at its current position
+        tortue.forward(100.0); // Move forward 100 units
         next_frame().await;
     }
 }
