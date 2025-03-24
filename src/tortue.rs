@@ -36,4 +36,8 @@ impl Tortue {
         self.y -= distance * rad.sin(); // Y goes down in graphics
         self.points.push((self.x, self.y)); // Add new position
     }
+
+    pub fn right(&mut self, degrees: f32) {
+        self.angle += degrees;
+    }
 }
