@@ -6,9 +6,10 @@ use tortue::Tortue;
 #[macroquad::main("Tortue")]
 async fn main() {
     let mut tortue = Tortue::new();
+    tortue.forward(100.0); // Move right
+    tortue.forward(100.0); // Move right again
     loop {
-        tortue.start(); // Draw the tortue at its current position
-        tortue.forward(100.0); // Move forward 100 units
+        tortue.draw();
         next_frame().await;
     }
 }
