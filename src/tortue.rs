@@ -92,7 +92,63 @@ impl Tortue {
         }
     }
 
+    /// Move the tortue backwards by the given amount of `distance`. If the pen is down, the tortue
+    /// will draw a line as it moves.
+    ///
+    /// The tortue takes very small steps (measured in "pixels"). So if you want it to move more,
+    /// use a bigger value to make the tortue walk further.
+    /// The `distance` can be a negative value, in which case the tortue will move forward.
+    /// If `distance` is NaN or infinite, the tortue does not move.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tortue::prelude::*;
+    ///
+    /// let origin = Point::new(0.0, 0.0);
+    /// let mut tortue = Tortue::new_with(origin);
+    /// // Initially at (0.0, 0.0), facing east (0 degrees)
+    /// assert_eq!(tortue.position(), origin);
+    ///
+    /// // Move backward 10 units; draws a line since pen is down by default
+    /// tortue.backward(10.0);
+    /// assert_eq!(tortue.position(), Point::new(-10.0, 0.0));
+    ///
+    /// // Move backward 100 more units, continuing to draw
+    /// tortue.backward(100.0);
+    /// assert_eq!(tortue.position(), Point::new(-110.0, 0.0));
+    ///
+    /// // Lift pen and move forward 223 units using negative distance
+    /// tortue.pen_up();
+    /// tortue.backward(-223.0); // Negative distance moves forward
+    /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
+    ///
+    /// // Turn 90 degrees (north), lower pen, and move backward 50 units
+    /// tortue.set_heading(90.0);
+    /// tortue.pen_down();
+    /// tortue.backward(50.0);
+    /// assert_eq!(tortue.position(), Point::new(113.0, -50.0));
+    ///
+    /// // Move forward 50 units using negative distance, drawing a line
+    /// tortue.backward(-50.0);
+    /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
+    ///
+    /// // Zero distance does nothing
+    /// tortue.backward(0.0);
+    /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
+    ///
+    /// // NaN distance does nothing
+    /// tortue.backward(f32::NAN);
+    /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
+    ///
+    /// // Infinite distance does nothing
+    /// tortue.backward(f32::INFINITY);
+    /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
+    /// ```
     pub fn backward(&mut self, distance: Distance) {
+        if !distance.is_finite() {
+            return;
+        }
         let rad = self.angle.to_radians();
         let new_x = self.position.x - distance * rad.cos();
         let new_y = self.position.y - distance * rad.sin();
