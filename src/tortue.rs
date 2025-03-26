@@ -10,19 +10,23 @@ pub struct Tortue {
     pen_color: Color,
     pen_down: bool,
     pen_size: f32,
+    filling: bool,
+    fill_color: Color,
 }
 
 impl Tortue {
     pub fn new() -> Self {
-        Tortue {
+        Self {
             position: Point::default(),
             angle: 0.0,
             points: vec![Point::default()],
             current: 0,
-            color: RED,
+            color: GREEN,
             pen_color: BLACK,
             pen_down: true,
             pen_size: 2.0,
+            filling: false,
+            fill_color: GRAY,
         }
     }
 
@@ -70,7 +74,7 @@ impl Tortue {
     }
 
     pub fn begin_fill(&mut self) {
-        unimplemented!();
+        self.filling = true;
     }
 
     pub fn clear(&mut self) {
@@ -90,11 +94,24 @@ impl Tortue {
     }
 
     pub fn end_fill(&mut self) {
-        unimplemented!();
+        self.filling = false;
+        // Draw the filled shape if we have enough points
+        if self.points.len() >= 3 {
+            let vertices: Vec<_> = self.points.iter().map(|p| vec2(p.x, p.y)).collect();
+            draw_poly_lines(
+                self.position.x,
+                self.position.y,      // Centre (just for reference)
+                vertices.len() as u8, // Number of sides
+                0.0,                  // Rotation (none)
+                0.0,                  // Thickness (filled, so 0)
+                self.pen_size,
+                self.fill_color, // Fill colour
+            );
+        }
     }
 
     pub fn fill_color(&self) -> Color {
-        unimplemented!();
+        self.fill_color
     }
 
     pub fn forward(&mut self, distance: Distance) {
@@ -135,7 +152,7 @@ impl Tortue {
     }
 
     pub fn is_filling(&self) -> bool {
-        unimplemented!();
+        self.filling
     }
 
     pub fn is_pen_down(&self) -> bool {
@@ -187,8 +204,8 @@ impl Tortue {
         self.angle += angle;
     }
 
-    pub fn set_fill_color(&mut self, _color: Color) {
-        unimplemented!();
+    pub fn set_fill_color(&mut self, color: Color) {
+        self.fill_color = color;
     }
 
     pub fn set_heading(&mut self, angle: Angle) {
