@@ -6,8 +6,10 @@ pub struct Tortue {
     angle: f32,
     points: Vec<Point>,
     current: usize,
-    pen_down: bool,
     color: Color,
+    pen_color: Color,
+    pen_down: bool,
+    pen_size: f32,
 }
 
 impl Tortue {
@@ -17,8 +19,10 @@ impl Tortue {
             angle: 0.0,
             points: vec![Point::default()],
             current: 0,
+            color: RED,
+            pen_color: BLACK,
             pen_down: true,
-            color: BLACK,
+            pen_size: 2.0,
         }
     }
 
@@ -91,7 +95,7 @@ impl Tortue {
     }
 
     pub fn is_pen_down(&self) -> bool {
-        unimplemented!();
+        self.pen_down
     }
 
     pub fn is_using_degrees(&self) -> bool {
@@ -111,7 +115,7 @@ impl Tortue {
     }
 
     pub fn pen_color(&self) -> Color {
-        unimplemented!();
+        self.pen_color
     }
 
     pub fn pen_down(&mut self) {
@@ -119,7 +123,7 @@ impl Tortue {
     }
 
     pub fn pen_size(&self) -> f32 {
-        unimplemented!();
+        self.pen_size
     }
 
     pub fn pen_up(&mut self) {
@@ -145,12 +149,12 @@ impl Tortue {
         unimplemented!();
     }
 
-    pub fn set_pen_color(&mut self, _color: Color) {
-        unimplemented!();
+    pub fn set_pen_color(&mut self, color: Color) {
+        self.pen_color = color;
     }
 
-    pub fn set_pen_size(&mut self, _thickness: f32) {
-        unimplemented!();
+    pub fn set_pen_size(&mut self, thickness: f32) {
+        self.pen_size = thickness;
     }
 
     pub fn set_speed<S: Into<Speed>>(&mut self, _speed: S) {
@@ -164,6 +168,7 @@ impl Tortue {
     pub fn set_y(&mut self, y: f32) {
         self.position.y = y;
     }
+    
     pub fn show(&mut self) {
         unimplemented!();
     }
@@ -171,6 +176,7 @@ impl Tortue {
     pub fn speed(&self) -> Speed {
         unimplemented!();
     }
+
     pub fn turn_towards<P: Into<Point>>(&mut self, _target: P) {
         unimplemented!();
     }
@@ -206,7 +212,7 @@ impl Tortue {
             for i in 0..ponts_to_draw {
                 let pt1 = self.points[i];
                 let pt2 = self.points[i + 1];
-                draw_line(pt1.x, pt1.y, pt2.x, pt2.y, 2.0, self.color);
+                draw_line(pt1.x, pt1.y, pt2.x, pt2.y, self.pen_size, self.pen_color);
             }
 
             // Update turtle position to the latest drawn point
@@ -218,7 +224,7 @@ impl Tortue {
         }
 
         // Draw turtle position
-        draw_circle(self.position.x, self.position.y, 5.0, RED);
+        draw_circle(self.position.x, self.position.y, 5.0, self.color);
 
         // Advance drawing progress
         if self.current < self.points.len() - 1 {

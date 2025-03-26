@@ -14,6 +14,21 @@ impl Point {
 
 impl Default for Point {
     fn default() -> Self {
-        Self::new(screen_width() / 2.0, screen_height() / 2.0)
+        Self {
+            x: screen_width() / 2.0,
+            y: screen_height() / 2.0,
+        }
+    }
+}
+
+impl From<(f32, f32)> for Point {
+    fn from(pt: (f32, f32)) -> Self {
+        Self { x: pt.0, y: pt.1 }
+    }
+}
+
+impl From<[f32; 2]> for Point {
+    fn from(pt: [f32; 2]) -> Self {
+        Self { x: pt[0], y: pt[1] }
     }
 }
