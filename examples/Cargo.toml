@@ -10,3 +10,7 @@ tortue = { path = "../" }
 [[bin]]
 name = "circle"
 path = "src/circle.rs"
+
+[[bin]]
+name = "square"
+path = "src/square.rs"
