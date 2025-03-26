@@ -1,9 +1,16 @@
 use macroquad::prelude::*;
 
+mod tortue;
+use tortue::Tortue;
+
 #[macroquad::main("Tortue")]
 async fn main() {
-    loop {
-        clear_background(WHITE);
-        next_frame().await;
+    let mut tortue = Tortue::new();
+
+    for _ in 0..360 {
+        tortue.forward(1.0);
+        tortue.right(1.0);
     }
+
+    tortue.draw().await;
 }
