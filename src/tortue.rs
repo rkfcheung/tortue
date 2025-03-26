@@ -17,9 +17,9 @@ pub struct Tortue {
 impl Tortue {
     pub fn new() -> Self {
         Self {
-            position: Point::default(),
+            position: origin(),
             angle: 0.0,
-            points: vec![Point::default()],
+            points: vec![origin()],
             current: 0,
             color: GREEN,
             pen_color: BLACK,
@@ -79,9 +79,9 @@ impl Tortue {
 
     pub fn clear(&mut self) {
         // Reset to initial state
-        self.position = Point::default();
+        self.position = origin();
         self.angle = 0.0;
-        self.points = vec![Point::default()];
+        self.points = vec![origin()];
         self.current = 0;
         self.pen_down = true;
     }
@@ -147,7 +147,7 @@ impl Tortue {
     }
 
     pub fn home(&mut self) {
-        self.go_to(Point::default());
+        self.go_to(origin());
         self.angle = 0.0;
     }
 
