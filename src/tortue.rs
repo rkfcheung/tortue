@@ -12,6 +12,7 @@ const DEGREES_TO_RADIANS: f32 = PI / 180.0;
 const PI_DIV_2: f32 = PI / 2.0;
 
 pub struct Tortue {
+    origin: Point,
     position: Point,
     angle: Angle,
     points: Vec<Point>,
@@ -32,11 +33,12 @@ impl Tortue {
         Self::new_with(origin())
     }
 
-    pub fn new_with(position: Point) -> Self {
+    pub fn new_with(origin: Point) -> Self {
         Self {
-            position,
+            origin,
+            position: origin,
             angle: 0.0,
-            points: vec![position],
+            points: vec![origin],
             current: 0,
             color: GREEN,
             pen_color: BLACK,
@@ -155,9 +157,9 @@ impl Tortue {
 
     pub fn clear(&mut self) {
         // Reset to initial state
-        self.position = origin();
+        self.position = self.origin;
         self.angle = 0.0;
-        self.points = vec![origin()];
+        self.points = vec![self.origin];
         self.current = 0;
         self.pen_down = true;
     }
@@ -312,7 +314,7 @@ impl Tortue {
 
     pub fn reset(&mut self) {
         // Complete reset to initial state
-        *self = Tortue::new();
+        *self = Tortue::new_with(self.origin);
     }
 
     pub fn right(&mut self, angle: Angle) {
