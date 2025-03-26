@@ -12,5 +12,17 @@ name = "circle"
 path = "src/circle.rs"
 
 [[bin]]
+name = "dashed-circle"
+path = "src/dashed_circle.rs"
+
+[[bin]]
+name = "empty-star"
+path = "src/empty_star.rs"
+
+[[bin]]
 name = "square"
 path = "src/square.rs"
+
+[[bin]]
+name = "three-triangles"
+path = "src/three_triangles.rs"
