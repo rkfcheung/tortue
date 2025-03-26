@@ -1,3 +1,5 @@
+// Ported from https://github.com/sunjay/turtle/blob/master/src/turtle.rs
+
 use macroquad::prelude::*;
 use std::f32::consts::PI;
 use std::thread::sleep;
@@ -27,10 +29,14 @@ pub struct Tortue {
 
 impl Tortue {
     pub fn new() -> Self {
+        Self::new_with(origin())
+    }
+
+    pub fn new_with(position: Point) -> Self {
         Self {
-            position: origin(),
+            position,
             angle: 0.0,
-            points: vec![origin()],
+            points: vec![position],
             current: 0,
             color: GREEN,
             pen_color: BLACK,
@@ -137,7 +143,62 @@ impl Tortue {
         self.fill_color
     }
 
+    /// Move the tortue forward by the given amount of `distance`. If the pen is down, the tortue
+    /// will draw a line as it moves.
+    ///
+    /// The tortue takes very small steps (measured in "pixels"). So if you want it to move more,
+    /// use a bigger value to make the tortue walk further.
+    /// The `distance` can be a negative value, in which case the tortue will move backward.
+    /// If `distance` is NaN or infinite, the tortue does not move.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tortue::prelude::*;
+    ///
+    /// let mut tortue = Tortue::new_with((0.0, 0.0).into());
+    /// // Initially at (0.0, 0.0), facing east (0 degrees)
+    /// assert_eq!(tortue.position(), (0.0, 0.0).into());
+    ///
+    /// // Move forward 10 units, drawing if pen is down (default is typically down)
+    /// tortue.forward(10.0);
+    /// assert_eq!(tortue.position(), (10.0, 0.0).into());
+    ///
+    /// // Move forward 100 more units
+    /// tortue.forward(100.0);
+    /// assert_eq!(tortue.position(), (110.0, 0.0).into());
+    ///
+    /// // Lift pen and move backward 223 units
+    /// tortue.pen_up();
+    /// tortue.forward(-223.0);
+    /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
+    ///
+    /// // Turn 90 degrees (north) and move forward 50 units
+    /// tortue.set_heading(90.0);
+    /// tortue.pen_down();
+    /// tortue.forward(50.0);
+    /// assert_eq!(tortue.position(), (-113.0, 50.0).into());
+    ///
+    /// // Move backward 50 units (south)
+    /// tortue.forward(-50.0);
+    /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
+    ///
+    /// // Zero distance does nothing
+    /// tortue.forward(0.0);
+    /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
+    ///
+    /// // NaN distance does nothing
+    /// tortue.forward(f32::NAN);
+    /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
+    ///
+    /// // Infinite distance does nothing
+    /// tortue.forward(f32::INFINITY);
+    /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
+    /// ```
     pub fn forward(&mut self, distance: Distance) {
+        if distance.is_nan() || distance.is_infinite() {
+            return;
+        }
         let rad = self.angle.to_radians();
         let new_x = self.position.x + distance * rad.cos();
         let new_y = self.position.y + distance * rad.sin();
