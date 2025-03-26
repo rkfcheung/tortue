@@ -146,18 +146,7 @@ impl Tortue {
     /// assert_eq!(tortue.position(), Point::new(113.0, 0.0));
     /// ```
     pub fn backward(&mut self, distance: Distance) {
-        if !distance.is_finite() {
-            return;
-        }
-        let rad = self.angle.to_radians();
-        let new_x = self.position.x - distance * rad.cos();
-        let new_y = self.position.y - distance * rad.sin();
-
-        if self.pen_down {
-            self.points.push((new_x, new_y).into());
-        }
-        self.set_x(new_x);
-        self.set_y(new_y);
+        self.move_by(distance, -1.0);
     }
 
     pub fn begin_fill(&mut self) {
@@ -252,18 +241,7 @@ impl Tortue {
     /// assert_eq!(tortue.position(), (-113.0, 0.0).into());
     /// ```
     pub fn forward(&mut self, distance: Distance) {
-        if distance.is_nan() || distance.is_infinite() {
-            return;
-        }
-        let rad = self.angle.to_radians();
-        let new_x = self.position.x + distance * rad.cos();
-        let new_y = self.position.y + distance * rad.sin();
-
-        if self.pen_down {
-            self.points.push((new_x, new_y).into());
-        }
-        self.set_x(new_x);
-        self.set_y(new_y);
+        self.move_by(distance, 1.0);
     }
 
     pub fn go_to<P: Into<Point>>(&mut self, position: P) {
@@ -438,5 +416,21 @@ impl Tortue {
     pub fn wait(&self, secs: f64) {
         let start_time = get_time();
         while get_time() - start_time < secs {}
+    }
+
+    // Internal helper for moving forward or backward.
+    fn move_by(&mut self, distance: Distance, multiplier: f32) {
+        if !distance.is_finite() {
+            return;
+        }
+        let rad = self.angle.to_radians();
+        let new_x = self.position.x + multiplier * distance * rad.cos();
+        let new_y = self.position.y + multiplier * distance * rad.sin();
+
+        if self.pen_down {
+            self.points.push((new_x, new_y).into());
+        }
+        self.set_x(new_x);
+        self.set_y(new_y);
     }
 }
