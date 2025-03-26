@@ -1,8 +1,11 @@
 use macroquad::prelude::*;
 use std::f32::consts::PI;
+use std::thread::sleep;
+use std::time::Duration;
 
 use crate::prelude::*;
 
+// Conversion constants
 const DEGREES_TO_RADIANS: f32 = PI / 180.0;
 const PI_DIV_2: f32 = PI / 2.0;
 
@@ -58,7 +61,6 @@ impl Tortue {
                 self.points
                     .push((self.position.x + step_x, self.position.y + step_y).into());
             }
-
             self.left(step);
         }
     }
@@ -80,7 +82,6 @@ impl Tortue {
                 self.points
                     .push((self.position.x + step_x, self.position.y + step_y).into());
             }
-
             self.right(step);
         }
     }
@@ -93,7 +94,6 @@ impl Tortue {
         if self.pen_down {
             self.points.push((new_x, new_y).into());
         }
-
         self.set_x(new_x);
         self.set_y(new_y);
     }
@@ -145,18 +145,15 @@ impl Tortue {
         if self.pen_down {
             self.points.push((new_x, new_y).into());
         }
-
         self.set_x(new_x);
         self.set_y(new_y);
     }
 
     pub fn go_to<P: Into<Point>>(&mut self, position: P) {
         let new_pos = position.into();
-
         if self.pen_down {
             self.points.push(new_pos);
         }
-
         self.set_x(new_pos.x);
         self.set_y(new_pos.y);
     }
@@ -183,11 +180,11 @@ impl Tortue {
     }
 
     pub fn is_using_degrees(&self) -> bool {
-        unimplemented!();
+        self.use_degrees
     }
 
     pub fn is_using_radians(&self) -> bool {
-        unimplemented!();
+        !self.use_degrees
     }
 
     pub fn is_visible(&self) -> bool {
@@ -272,26 +269,23 @@ impl Tortue {
         let dx = target_point.x - self.position.x;
         let dy = target_point.y - self.position.y;
 
-        let target_angle = dy.atan2(dx).to_degrees();
-        self.set_heading(target_angle);
+        // Compute target angle in degrees (using atan2 returns radians, so convert if needed)
+        let target_angle_deg = dy.atan2(dx).to_degrees();
+        self.set_heading(target_angle_deg);
     }
 
     pub fn update(&mut self) {
         clear_background(WHITE);
 
         let current = self.current;
-
         if self.points.len() > 1 {
             for i in 0..current {
                 let pt1 = self.points[i];
                 let pt2 = self.points[i + 1];
                 draw_line(pt1.x, pt1.y, pt2.x, pt2.y, self.pen_size, self.pen_color);
             }
-
-            if current > 0 {
-                let new_pt = self.points[current];
-                self.set_x(new_pt.x);
-                self.set_y(new_pt.y);
+            if current < self.points.len() {
+                self.position = self.points[current];
             }
         }
 
@@ -300,7 +294,7 @@ impl Tortue {
         }
 
         if self.current < self.points.len() - 1 {
-            self.current += 1;
+            self.current += self.speed;
         }
     }
 
@@ -312,10 +306,18 @@ impl Tortue {
         self.use_degrees = false;
     }
 
+    /// Wait for a mouse click before continuing.
+    ///
+    /// This implementation uses macroquad's input functions and busy-waits (with a short sleep)
+    /// so that it does not peg the CPU.
     pub fn wait_for_click(&mut self) {
-        unimplemented!();
+        // Loop until the left mouse button is pressed.
+        while !is_mouse_button_pressed(MouseButton::Left) {
+            sleep(Duration::from_millis(16)); // roughly 60 FPS
+        }
     }
 
+    /// Wait for the specified number of seconds.
     pub fn wait(&self, secs: f64) {
         let start_time = get_time();
         while get_time() - start_time < secs {}
