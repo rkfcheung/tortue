@@ -273,7 +273,7 @@ impl Tortue {
         self.color = color;
     }
 
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         clear_background(WHITE);
 
         let points_to_draw = self.current;
