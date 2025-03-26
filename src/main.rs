@@ -1,7 +1,4 @@
-use macroquad::prelude::*;
-
-mod tortue;
-use tortue::Tortue;
+use tortue::prelude::*;
 
 #[macroquad::main("Tortue")]
 async fn main() {
