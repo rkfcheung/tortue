@@ -3,11 +3,12 @@ use std::f32::consts::PI;
 
 use crate::prelude::*;
 
+const DEGREES_TO_RADIANS: f32 = PI / 180.0;
 const PI_DIV_2: f32 = PI / 2.0;
 
 pub struct Tortue {
     position: Point,
-    angle: f32,
+    angle: Angle,
     points: Vec<Point>,
     current: usize,
     color: Color,
@@ -17,6 +18,8 @@ pub struct Tortue {
     filling: bool,
     fill_color: Color,
     visible: bool,
+    use_degrees: bool,
+    speed: Speed,
 }
 
 impl Tortue {
@@ -33,11 +36,20 @@ impl Tortue {
             filling: false,
             fill_color: GRAY,
             visible: true,
+            use_degrees: true,
+            speed: 1,
         }
     }
 
     pub fn arc_left(&mut self, radius: Distance, extent: Angle) {
-        for _ in 0..(extent as usize) {
+        let step = if self.use_degrees {
+            1.0
+        } else {
+            DEGREES_TO_RADIANS
+        };
+        let num_steps = (extent / step) as usize;
+
+        for _ in 0..num_steps {
             let rad = self.angle.to_radians();
             let step_x = radius * (rad + PI_DIV_2).cos();
             let step_y = radius * (rad + PI_DIV_2).sin();
@@ -47,12 +59,19 @@ impl Tortue {
                     .push((self.position.x + step_x, self.position.y + step_y).into());
             }
 
-            self.left(1.0);
+            self.left(step);
         }
     }
 
     pub fn arc_right(&mut self, radius: Distance, extent: Angle) {
-        for _ in 0..(extent as usize) {
+        let step = if self.use_degrees {
+            1.0
+        } else {
+            DEGREES_TO_RADIANS
+        };
+        let num_steps = (extent / step) as usize;
+
+        for _ in 0..num_steps {
             let rad = self.angle.to_radians();
             let step_x = radius * (rad - PI_DIV_2).cos();
             let step_y = radius * (rad - PI_DIV_2).sin();
@@ -62,7 +81,7 @@ impl Tortue {
                     .push((self.position.x + step_x, self.position.y + step_y).into());
             }
 
-            self.right(1.0);
+            self.right(step);
         }
     }
 
@@ -208,6 +227,10 @@ impl Tortue {
         self.angle += angle;
     }
 
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
     pub fn set_fill_color(&mut self, color: Color) {
         self.fill_color = color;
     }
@@ -224,8 +247,8 @@ impl Tortue {
         self.pen_size = thickness;
     }
 
-    pub fn set_speed<S: Into<Speed>>(&mut self, _speed: S) {
-        unimplemented!();
+    pub fn set_speed(&mut self, speed: Speed) {
+        self.speed = speed;
     }
 
     pub fn set_x(&mut self, x: f32) {
@@ -241,7 +264,7 @@ impl Tortue {
     }
 
     pub fn speed(&self) -> Speed {
-        unimplemented!();
+        self.speed
     }
 
     pub fn turn_towards<P: Into<Point>>(&mut self, target: P) {
@@ -253,39 +276,20 @@ impl Tortue {
         self.set_heading(target_angle);
     }
 
-    pub fn use_degrees(&mut self) {
-        unimplemented!();
-    }
-
-    pub fn use_radians(&mut self) {
-        unimplemented!();
-    }
-
-    pub fn wait_for_click(&mut self) {
-        unimplemented!();
-    }
-
-    pub fn wait(&mut self, _secs: f32) {
-        unimplemented!();
-    }
-
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color;
-    }
-
     pub fn update(&mut self) {
         clear_background(WHITE);
 
-        let points_to_draw = self.current;
+        let current = self.current;
 
         if self.points.len() > 1 {
-            for i in 0..points_to_draw {
+            for i in 0..current {
                 let pt1 = self.points[i];
                 let pt2 = self.points[i + 1];
                 draw_line(pt1.x, pt1.y, pt2.x, pt2.y, self.pen_size, self.pen_color);
             }
-            if points_to_draw > 0 {
-                let new_pt = self.points[points_to_draw];
+
+            if current > 0 {
+                let new_pt = self.points[current];
                 self.set_x(new_pt.x);
                 self.set_y(new_pt.y);
             }
@@ -298,5 +302,22 @@ impl Tortue {
         if self.current < self.points.len() - 1 {
             self.current += 1;
         }
+    }
+
+    pub fn use_degrees(&mut self) {
+        self.use_degrees = true;
+    }
+
+    pub fn use_radians(&mut self) {
+        self.use_degrees = false;
+    }
+
+    pub fn wait_for_click(&mut self) {
+        unimplemented!();
+    }
+
+    pub fn wait(&self, secs: f64) {
+        let start_time = get_time();
+        while get_time() - start_time < secs {}
     }
 }
