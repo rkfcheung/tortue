@@ -1,5 +1,9 @@
-use crate::prelude::*;
 use macroquad::prelude::*;
+use std::f32::consts::PI;
+
+use crate::prelude::*;
+
+const PI_DIV_2: f32 = PI / 2.0;
 
 pub struct Tortue {
     position: Point,
@@ -12,6 +16,7 @@ pub struct Tortue {
     pen_size: f32,
     filling: bool,
     fill_color: Color,
+    visible: bool,
 }
 
 impl Tortue {
@@ -27,14 +32,15 @@ impl Tortue {
             pen_size: 2.0,
             filling: false,
             fill_color: GRAY,
+            visible: true,
         }
     }
 
     pub fn arc_left(&mut self, radius: Distance, extent: Angle) {
         for _ in 0..(extent as usize) {
             let rad = self.angle.to_radians();
-            let step_x = radius * (rad + std::f32::consts::PI / 2.0).cos();
-            let step_y = radius * (rad + std::f32::consts::PI / 2.0).sin();
+            let step_x = radius * (rad + PI_DIV_2).cos();
+            let step_y = radius * (rad + PI_DIV_2).sin();
 
             if self.pen_down {
                 self.points
@@ -48,8 +54,8 @@ impl Tortue {
     pub fn arc_right(&mut self, radius: Distance, extent: Angle) {
         for _ in 0..(extent as usize) {
             let rad = self.angle.to_radians();
-            let step_x = radius * (rad - std::f32::consts::PI / 2.0).cos();
-            let step_y = radius * (rad - std::f32::consts::PI / 2.0).sin();
+            let step_x = radius * (rad - PI_DIV_2).cos();
+            let step_y = radius * (rad - PI_DIV_2).sin();
 
             if self.pen_down {
                 self.points
@@ -95,18 +101,16 @@ impl Tortue {
 
     pub fn end_fill(&mut self) {
         self.filling = false;
-        // Draw the filled shape if we have enough points
         if self.points.len() >= 3 {
-            let vertices: Vec<_> = self.points.iter().map(|p| vec2(p.x, p.y)).collect();
-            draw_poly_lines(
-                self.position.x,
-                self.position.y,      // Centre (just for reference)
-                vertices.len() as u8, // Number of sides
-                0.0,                  // Rotation (none)
-                0.0,                  // Thickness (filled, so 0)
-                self.pen_size,
-                self.fill_color, // Fill colour
-            );
+            let vertices: Vec<Vec2> = self.points.iter().map(|p| vec2(p.x, p.y)).collect();
+            for i in 1..vertices.len() - 1 {
+                draw_triangle(
+                    vertices[0],     // First point as base
+                    vertices[i],     // Next point
+                    vertices[i + 1], // Next-next point
+                    self.fill_color, // Fill colour
+                );
+            }
         }
     }
 
@@ -143,7 +147,7 @@ impl Tortue {
     }
 
     pub fn hide(&mut self) {
-        unimplemented!();
+        self.visible = false;
     }
 
     pub fn home(&mut self) {
@@ -168,7 +172,7 @@ impl Tortue {
     }
 
     pub fn is_visible(&self) -> bool {
-        unimplemented!();
+        self.visible
     }
 
     pub fn left(&mut self, angle: Angle) {
@@ -233,7 +237,7 @@ impl Tortue {
     }
 
     pub fn show(&mut self) {
-        unimplemented!();
+        self.visible = true;
     }
 
     pub fn speed(&self) -> Speed {
@@ -272,29 +276,25 @@ impl Tortue {
     fn update(&mut self) {
         clear_background(WHITE);
 
-        // Gradually increase the number of points drawn
-        let ponts_to_draw = self.current;
+        let points_to_draw = self.current;
 
-        // Draw lines and move turtle
         if self.points.len() > 1 {
-            for i in 0..ponts_to_draw {
+            for i in 0..points_to_draw {
                 let pt1 = self.points[i];
                 let pt2 = self.points[i + 1];
                 draw_line(pt1.x, pt1.y, pt2.x, pt2.y, self.pen_size, self.pen_color);
             }
-
-            // Update turtle position to the latest drawn point
-            if ponts_to_draw > 0 {
-                let new_pt = self.points[ponts_to_draw];
+            if points_to_draw > 0 {
+                let new_pt = self.points[points_to_draw];
                 self.set_x(new_pt.x);
                 self.set_y(new_pt.y);
             }
         }
 
-        // Draw turtle position
-        draw_circle(self.position.x, self.position.y, 5.0, self.color);
+        if self.visible {
+            draw_circle(self.position.x, self.position.y, 5.0, self.color);
+        }
 
-        // Advance drawing progress
         if self.current < self.points.len() - 1 {
             self.current += 1;
         }
