@@ -26,16 +26,47 @@ impl Tortue {
         }
     }
 
-    pub fn arc_left(&mut self, _radius: Distance, _extent: Angle) {
-        unimplemented!();
+    pub fn arc_left(&mut self, radius: Distance, extent: Angle) {
+        for _ in 0..(extent as usize) {
+            let rad = self.angle.to_radians();
+            let step_x = radius * (rad + std::f32::consts::PI / 2.0).cos();
+            let step_y = radius * (rad + std::f32::consts::PI / 2.0).sin();
+
+            if self.pen_down {
+                self.points
+                    .push((self.position.x + step_x, self.position.y + step_y).into());
+            }
+
+            self.left(1.0);
+        }
     }
 
-    pub fn arc_right(&mut self, _radius: Distance, _extent: Angle) {
-        unimplemented!();
+    pub fn arc_right(&mut self, radius: Distance, extent: Angle) {
+        for _ in 0..(extent as usize) {
+            let rad = self.angle.to_radians();
+            let step_x = radius * (rad - std::f32::consts::PI / 2.0).cos();
+            let step_y = radius * (rad - std::f32::consts::PI / 2.0).sin();
+
+            if self.pen_down {
+                self.points
+                    .push((self.position.x + step_x, self.position.y + step_y).into());
+            }
+
+            self.right(1.0);
+        }
     }
 
-    pub fn backward(&mut self, _distance: Distance) {
-        unimplemented!();
+    pub fn backward(&mut self, distance: Distance) {
+        let rad = self.angle.to_radians();
+        let new_x = self.position.x - distance * rad.cos();
+        let new_y = self.position.y - distance * rad.sin();
+
+        if self.pen_down {
+            self.points.push((new_x, new_y).into());
+        }
+
+        self.set_x(new_x);
+        self.set_y(new_y);
     }
 
     pub fn begin_fill(&mut self) {
@@ -43,7 +74,12 @@ impl Tortue {
     }
 
     pub fn clear(&mut self) {
-        unimplemented!();
+        // Reset to initial state
+        self.position = Point::default();
+        self.angle = 0.0;
+        self.points = vec![Point::default()];
+        self.current = 0;
+        self.pen_down = true;
     }
 
     pub async fn draw(&mut self) {
@@ -67,19 +103,26 @@ impl Tortue {
         let new_y = self.position.y + distance * rad.sin();
 
         if self.pen_down {
-            self.points.push(Point::new(new_x, new_y));
+            self.points.push((new_x, new_y).into());
         }
 
         self.set_x(new_x);
         self.set_y(new_y);
     }
 
-    pub fn go_to<P: Into<Point>>(&mut self, _position: P) {
-        unimplemented!();
+    pub fn go_to<P: Into<Point>>(&mut self, position: P) {
+        let new_pos = position.into();
+
+        if self.pen_down {
+            self.points.push(new_pos);
+        }
+
+        self.set_x(new_pos.x);
+        self.set_y(new_pos.y);
     }
 
     pub fn heading(&self) -> Angle {
-        unimplemented!();
+        self.angle
     }
 
     pub fn hide(&mut self) {
@@ -87,7 +130,8 @@ impl Tortue {
     }
 
     pub fn home(&mut self) {
-        unimplemented!();
+        self.go_to(Point::default());
+        self.angle = 0.0;
     }
 
     pub fn is_filling(&self) -> bool {
@@ -135,8 +179,10 @@ impl Tortue {
     }
 
     pub fn reset(&mut self) {
-        unimplemented!();
+        // Complete reset to initial state
+        *self = Tortue::new();
     }
+
     pub fn right(&mut self, angle: Angle) {
         self.angle += angle;
     }
@@ -145,8 +191,8 @@ impl Tortue {
         unimplemented!();
     }
 
-    pub fn set_heading(&mut self, _angle: Angle) {
-        unimplemented!();
+    pub fn set_heading(&mut self, angle: Angle) {
+        self.angle = angle;
     }
 
     pub fn set_pen_color(&mut self, color: Color) {
@@ -168,7 +214,7 @@ impl Tortue {
     pub fn set_y(&mut self, y: f32) {
         self.position.y = y;
     }
-    
+
     pub fn show(&mut self) {
         unimplemented!();
     }
@@ -177,8 +223,13 @@ impl Tortue {
         unimplemented!();
     }
 
-    pub fn turn_towards<P: Into<Point>>(&mut self, _target: P) {
-        unimplemented!();
+    pub fn turn_towards<P: Into<Point>>(&mut self, target: P) {
+        let target_point = target.into();
+        let dx = target_point.x - self.position.x;
+        let dy = target_point.y - self.position.y;
+
+        let target_angle = dy.atan2(dx).to_degrees();
+        self.set_heading(target_angle);
     }
 
     pub fn use_degrees(&mut self) {
